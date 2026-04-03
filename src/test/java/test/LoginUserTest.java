@@ -29,19 +29,29 @@ public class LoginUserTest extends BaseSteps {
     public void tearDown() {
         userSteps.deleteUser(token); }
 
-    @Test
     @DisplayName("Вход под существующим пользователем")
     @Description("Успешная авторизация с корректными учётными данными")
+    @Test
     public void loginSuccess() {
         userSteps.login(user)
                 .then().assertThat().statusCode(HttpStatus.SC_OK).body("success", equalTo(true));
     }
-
-    @Test
     @DisplayName("Вход с неверным паролем")
     @Description("Проверка авторизации с корректным email, но неверным паролем — ожидается ошибка 401 Unauthorized")
+    @Test
     public void loginincorrectPassword() {
         UserModel wrongPassUser = new UserModel(user.getEmail(), "wrong_pass", user.getName());
+        userSteps.login(wrongPassUser)
+                .then().assertThat()
+                .statusCode(HttpStatus.SC_UNAUTHORIZED)
+                .body("success", equalTo(false))
+                .body("message", equalTo("email or password are incorrect"));
+    }
+    @DisplayName("Вход с неверным логином")
+    @Description("Проверка авторизации с некорректный email, верным паролем — ожидается ошибка 401 Unauthorized")
+    @Test
+    public void loginincorrectEmail() {
+        UserModel wrongPassUser = new UserModel("wrong_email", user.getPassword(), user.getName());
         userSteps.login(wrongPassUser)
                 .then().assertThat()
                 .statusCode(HttpStatus.SC_UNAUTHORIZED)
